@@ -8,26 +8,26 @@ steps:
   commands:
   - echo works
 
----
+# ---
 
-kind: pipeline
-type: ssh
-name: docker-compose
+# kind: pipeline
+# type: ssh
+# name: docker-compose
 
-server:
-  host: localhost
-  user: root
-  password:
-    from_secret: ssh_password
+# server:
+#   host: localhost
+#   user: root
+#   password:
+#     from_secret: ssh_password
 
-steps:
-- name: build
-  image: golang
-  commands:
-    - cd /mnt/data/docker
-    - docker-compose down
-    - docker-compose pull
-    - docker-compose up -d
+# steps:
+# - name: build
+#   image: golang
+#   commands:
+#     - cd /mnt/data/docker
+#     - docker-compose down
+#     - docker-compose pull
+#     - docker-compose up -d
 
-depends_on:
-  - app
+# depends_on:
+#   - app
