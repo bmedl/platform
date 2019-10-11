@@ -3,31 +3,12 @@ type: docker
 name: app
 
 steps:
-- name: build
-  image: alpine
-  commands:
-  - echo works
-
-# ---
-
-# kind: pipeline
-# type: ssh
-# name: docker-compose
-
-# server:
-#   host: localhost
-#   user: root
-#   password:
-#     from_secret: ssh_password
-
-# steps:
-# - name: build
-#   image: golang
-#   commands:
-#     - cd /mnt/data/docker
-#     - docker-compose down
-#     - docker-compose pull
-#     - docker-compose up -d
-
-# depends_on:
-#   - app
+  - name: build
+    image: alpine
+    commands:
+      - echo works
+      
+  - name: second
+    image: alpine
+    commands:
+      - ls -l
