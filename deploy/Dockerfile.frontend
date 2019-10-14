@@ -4,4 +4,4 @@ COPY frontend/ /app/
 RUN npm install -g @angular/cli
 RUN npm install
 
-CMD ["ng", "serve", "--prod",  "--optimization", "--host", "0.0.0.0", "--port", "80"]
+CMD ["ng", "serve", "--prod", "--optimization", "--disable-host-check", "--host", "0.0.0.0", "--port", "80"]
