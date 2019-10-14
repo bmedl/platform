@@ -26,4 +26,4 @@ const routes: Routes = [
     // TODO add catch-all 404 page
 ];
 
-export const CoreRoutingModule = RouterModule.forRoot(routes);
+export const CoreRoutingModule = RouterModule.forRoot(routes, {useHash: true});
