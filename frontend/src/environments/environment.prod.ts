@@ -1,3 +1,5 @@
 export const environment = {
-  production: true
+  production: true,
+  noLogin: true,
+  apiUrl: 'https://api.bmedl.soothingblue.space',
 };

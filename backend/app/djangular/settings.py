@@ -26,7 +26,7 @@ SECRET_KEY = '1%y02n0&h&7^h^c$n8654*&nks-q#%gjrs2_w+e6rqs)4!01ui'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*.bmedl.soothingblue.space']
+ALLOWED_HOSTS = ['.bmedl.soothingblue.space']
 
 # CORS
 
