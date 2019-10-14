@@ -14,7 +14,9 @@ steps:
 kind: pipeline
 type: ssh
 name: deploy
-workspace: "/tmp/drone-bmedl/src"
+workspace:
+  base: /tmp/drone-bmedl
+  path: src
 
 server:
   host: 172.17.0.1
