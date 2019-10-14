@@ -30,7 +30,7 @@ steps:
   - name: deploy
     commands:
       - docker-compose down
-      - docker-compose --build -d up
+      - docker-compose up --build -d
 
 trigger:
   branch:
