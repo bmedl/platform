@@ -17,7 +17,7 @@ The application also exposes a REST API of its own via the popular [Django](http
 
 Finally an [Angular](https://angular.io/) UI is available that consumes the Django API and shows various statistics [here](https://app.bmedl.soothingblue.space).
 
-### Hosting, Continuous Integration andDeployment
+### Hosting, Continuous Integration and Deployment
 
 The project is hosted on a single [Google Compute](https://cloud.google.com/compute/) n1-standard-4 instance with 4 NVIDIA Tesla K80 GPUs. The data for training is stored in a [Google Cloud Storage](https://cloud.google.com/storage/) bucket of CSV files.
 
