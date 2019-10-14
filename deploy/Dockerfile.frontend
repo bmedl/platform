@@ -3,8 +3,5 @@ WORKDIR /app
 COPY frontend/ /app/
 RUN npm install -g @angular/cli
 RUN npm install
-RUN ng build
 
-FROM nginx
-WORKDIR /app
-COPY --from=builder /app/dist/frontend /usr/share/nginx/html
+CMD ["ng", "serve", "--prod",  "--optimization", "--host", "0.0.0.0", "--port", "80"]
