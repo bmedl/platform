@@ -25,6 +25,7 @@ Django = "*"
 django-cors-headers = "*"
 packaging = "*"
 pyyaml = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.7"

@@ -3,12 +3,28 @@ type: docker
 name: app
 
 steps:
-  - name: build
-    image: alpine
+  - name: test_backend
+    image: python:3.7.4
     commands:
-      - echo works
-      
-  - name: second
-    image: alpine
+      - cd backend
+      - pip install -r requirements.txt
+      - pytest
+
+---
+kind: pipeline
+type: ssh
+name: deploy
+workspace: /tmp/drone-bmedl/src
+
+server:
+  host: 172.17.0.1
+  user:
+    from_secret: ssh_user
+  password:
+    from_secret: ssh_password
+
+steps:
+  - name: deploy
     commands:
-      - ls -l
+      - docker-compose down
+      - docker-compose --build -d up
