@@ -1,5 +1,7 @@
 # BME Deep Learning Trading Platform
 
+[![Build Status](https://cicd.bmedl.soothingblue.space/api/badges/bmedl/platform/status.svg)](https://cicd.bmedl.soothingblue.space/bmedl/platform)
+
 ## Overview
 
 This repo is the home of a Homework Project for the [Deep Learning course of BME](http://smartlab.tmit.bme.hu/oktatas-deep-learning-nagy-hazi). 
