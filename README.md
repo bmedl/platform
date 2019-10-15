@@ -28,7 +28,7 @@ The deployments are made easier with [Docker](https://docker.com), while [Drone]
 ## Development
 
 ### Data - exploratory study
-https://colab.research.google.com/drive/1DIjR-VT-jJJTLXeQp6Gvd4kVu9Lr1F3J#scrollTo=zdjpqoSSSaiZ
+It's available in first_milestone.ipynb
 
 ### Django Backend
 
