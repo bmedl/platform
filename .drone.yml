@@ -28,6 +28,21 @@ server:
 
 steps:
   - name: deploy
+    environment:
+      DB_USER:
+        from_secret: db_user
+      DB_PASSWORD:
+        from_secret: db_password
+      DB_ADDRESS:
+        from_secret: db_address
+      V20_ACCOUNT_ID:
+        from_secret: v20_account_id
+      V20_APPLICATION_NAME:
+        from_secret: v20_application_name
+      V20_TOKEN:
+        from_secret: v20_token
+
+      V20_INSTRUMENTS: EUR_USD
     commands:
       - docker-compose down
       - docker-compose up --build -d

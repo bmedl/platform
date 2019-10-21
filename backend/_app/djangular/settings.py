@@ -33,7 +33,7 @@ ALLOWED_HOSTS = ['.bmedl.soothingblue.space']
 CORS_ORIGIN_ALLOW_ALL = True
 
 # Application definition
-
+rest_
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

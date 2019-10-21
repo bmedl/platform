@@ -7,6 +7,22 @@ services:
     restart: unless-stopped
     networks: 
       - docker_default
+
+  collect:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.collect
+    restart: unless-stopped
+    environment: 
+      - DB_USER
+      - DB_PASSWORD
+      - DB_ADDRESS
+      - V20_ACCOUNT_ID
+      - V20_APPLICATION_NAME
+      - V20_TOKEN
+      - V20_INSTRUMENTS
+    networks:
+      - docker_default
   
   frontend:
     build:
