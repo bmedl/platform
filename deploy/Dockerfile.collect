@@ -5,6 +5,10 @@ COPY backend/requirements.txt /app/
 RUN pip install -r requirements.txt
 COPY backend/ /app/
 
+# Oanda server uses vulnerable SSL configs
+# we just roll with it
+COPY deploy/openssl.cnf /etc/ssl/openssl.cnf
+
 ENV PYTHONPATH /app
 ENV DJANGO_SETTINGS_MODULE stocks.stocks.settings
 
