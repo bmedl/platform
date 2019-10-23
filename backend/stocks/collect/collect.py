@@ -19,23 +19,29 @@ def to_bool(val: Any):
 def save_to_db(price: ClientPrice):
     from stocks.stocks.models import Stock
 
-    Stock(
-        name=price.instrument,
+    if len(price.bids) != len(price.asks):
+        print(f'bid price count ({len(price.bids)}) and ask price count ({len(price.asks)}) don\'t match, skipping...')
+        return
 
-        # UNIX time is a string that also contains fractions, we can omit them.
-        price_date=datetime.fromtimestamp(
-            int(price.time.split('.')[0]), pytz.UTC),
+    for i in range(len(price.bids)):
+        Stock(
+            name=price.instrument,
 
-        bid=price.bids[0].price,
-        liquidity=price.bids[0].liquidity,
+            # UNIX time is a string that also contains fractions, we can omit them.
+            price_date=datetime.fromtimestamp(
+                int(price.time.split('.')[0]), pytz.UTC),
 
-        ask=price.asks[0].price,
+            bid=price.bids[i].price,
+            bid_liquidity=price.bids[i].liquidity,
 
-        closeout_bid=price.closeoutBid,
-        closeout_ask=price.closeoutAsk,
+            ask=price.asks[i].price,
+            ask_liquidity=price.ask[i].liquidity,
 
-        tradeable=price.tradeable,
-    ).save()
+            closeout_bid=price.closeoutBid,
+            closeout_ask=price.closeoutAsk,
+
+            tradeable=price.tradeable,
+        ).save()
 
 
 def main():
