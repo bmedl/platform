@@ -35,7 +35,7 @@ def save_to_db(price: ClientPrice):
             bid_liquidity=price.bids[i].liquidity,
 
             ask=price.asks[i].price,
-            ask_liquidity=price.ask[i].liquidity,
+            ask_liquidity=price.asks[i].liquidity,
 
             closeout_bid=price.closeoutBid,
             closeout_ask=price.closeoutAsk,
