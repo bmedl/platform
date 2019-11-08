@@ -42,7 +42,7 @@ steps:
       V20_TOKEN:
         from_secret: v20_token
 
-      V20_INSTRUMENTS: EUR_USD
+      V20_INSTRUMENTS: EUR_USD,GBP_USD,USD_CHF,AUD_USD
     commands:
       - docker-compose down
       - docker-compose up --build -d
