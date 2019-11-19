@@ -13,6 +13,7 @@ django-cors-headers = "*"
 v20 = "*"
 pyyaml = "*"
 mysqlclient = "*"
+djangorestframework = "*"
 
 [requires]
 python_version = "3.7"
