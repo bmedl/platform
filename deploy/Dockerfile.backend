@@ -1,4 +1,4 @@
-FROM python:3
+FROM tensorflow:1.15.0-py3
 ENV PYTHONUNBUFFERED 1
 
 RUN pip install cython
@@ -7,9 +7,6 @@ RUN pip install numpy
 WORKDIR /app
 COPY backend/requirements.txt /app/
 RUN pip install -r requirements.txt
-
-RUN python -m pip install --upgrade pip
-RUN pip install tensorflow-gpu
 
 COPY backend/ /app/
 CMD ["python", "app/manage.py", "runserver", "0.0.0.0:80"]
