@@ -80,12 +80,22 @@ def process_data(data: pd.DataFrame) -> pd.DataFrame:
         data_currency[f'{currency}_ask_MACD'] = data_currency[f'{currency}_ask_EMA12'] - \
             data_currency[f'{currency}_ask_EMA26']
 
+        data_currency[f'{currency}_ask_BU'] = data_currency[f'{currency}_ask'].rolling(
+            window=20).mean() + data_currency[f'{currency}_ask'].rolling(window=10).std() * 2
+        data_currency[f'{currency}_ask_BD'] = data_currency[f'{currency}_ask'].rolling(
+            window=20).mean() - data_currency[f'{currency}_ask'].rolling(window=10).std() * 2
+
         data_currency[f'{currency}_bid_EMA12'] = data_currency[f'{currency}_bid'].ewm(
             span=12, adjust=True).mean()
         data_currency[f'{currency}_bid_EMA26'] = data_currency[f'{currency}_bid'].ewm(
             span=26, adjust=True).mean()
         data_currency[f'{currency}_bid_MACD'] = data_currency[f'{currency}_bid_EMA12'] - \
             data_currency[f'{currency}_bid_EMA26']
+
+        data_currency[f'{currency}_bid_BU'] = data_currency[f'{currency}_bid'].rolling(
+            window=20).mean() + data_currency[f'{currency}_bid'].rolling(window=10).std() * 2
+        data_currency[f'{currency}_bid_BD'] = data_currency[f'{currency}_bid'].rolling(
+            window=20).mean() - data_currency[f'{currency}_bid'].rolling(window=10).std() * 2
 
         data_currencies.append(data_currency)
 
@@ -171,26 +181,23 @@ def train_model(
     Trains the model with the given dataset, and returns the final model.
     """
 
-    tmp_fd, tmp_path = tempfile.mkstemp()
-    try:
-        checkpointer = ModelCheckpoint(
-            filepath=tmp_path, save_best_only=True)
+    checkpointer = ModelCheckpoint(
+        filepath='model.hdf5', save_best_only=True)
 
-        early_stopping = EarlyStopping(patience=8, verbose=1)
+    early_stopping = EarlyStopping(patience=8, verbose=1)
 
-        model.fit(data.x_train,
-                  data.y_train,
-                  batch_size=batch_size,
-                  epochs=10,
-                  verbose=1,
-                  validation_data=(data.x_val, data.y_val),
-                  callbacks=[checkpointer, early_stopping])
+    model.fit(data.x_train,
+                data.y_train,
+                batch_size=batch_size,
+                epochs=10,
+                verbose=1,
+                validation_data=(data.x_val, data.y_val),
+                callbacks=[checkpointer, early_stopping])
 
-        model.evaluate(data.x_test, data.y_test)
+    model.evaluate(data.x_test, data.y_test)
 
-        return load_model(tmp_path)
-    finally:
-        os.remove(tmp_path)
+    return load_model('model.hdf5')
+
 
 
 def get_model(
@@ -220,10 +227,11 @@ def save_model(name: str, model: Model):
         }
     )
 
+
 def save_prediction(name: str, value: int):
     from stocks.stocks.models import Prediction
 
     Prediction(
-        name = name,
-        value = value
+        name=name,
+        value=value
     ).save()
