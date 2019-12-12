@@ -8,7 +8,9 @@ from .model import get_stocks, prepare_training_data, process_data, get_model, \
 
 
 def train():
+    print('Retrieving stocks data...')
     stocks = process_data(get_stocks())
+    print(f'Retrieved {len(stocks)} entries.')
 
     for name in ['ask', 'bid']:
         print(f'Training model for {name}')
