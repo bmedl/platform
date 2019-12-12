@@ -9,6 +9,8 @@ COPY backend/requirements.txt /app/
 RUN pip install -r requirements.txt
 COPY backend/ /app/
 
+RUN pip install tensorflow-gpu
+
 # Oanda server uses vulnerable SSL configs
 # we just roll with it
 COPY deploy/openssl.cnf /etc/ssl/openssl.cnf
