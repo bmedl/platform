@@ -31,6 +31,9 @@ services:
     runtime: nvidia
     restart: unless-stopped
     environment: 
+      - DB_USER
+      - DB_PASSWORD
+      - DB_ADDRESS
       - TASKS=train
     networks:
       - docker_default
