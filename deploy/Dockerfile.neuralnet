@@ -16,4 +16,4 @@ COPY deploy/openssl.cnf /etc/ssl/openssl.cnf
 ENV PYTHONPATH /app
 ENV DJANGO_SETTINGS_MODULE stocks.stocks.settings
 
-CMD ["python", "stocks/neuralnet/run.py"]
+CMD ["python", "-m", "stocks.neuralnet.run"]
