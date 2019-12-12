@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.encoding import python_2_unicode_compatible
 
+
 # https://developer.oanda.com/rest-live-v20/pricing-df/
 class Stock(models.Model):
     name = models.CharField(max_length=120)
@@ -19,5 +20,11 @@ class Stock(models.Model):
 # A trained Keras model
 class NetworkModel(models.Model):
     name = models.CharField(max_length=120, blank=True, default='')
-    created = models.DateTimeField(auto_now=True)
+    updated = models.DateTimeField(auto_now=True)
     model_blob = models.BinaryField()
+
+
+class Prediction(models.Model):
+    created = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=120)
+    value = models.IntegerField()

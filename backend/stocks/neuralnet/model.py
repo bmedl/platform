@@ -10,6 +10,7 @@ from keras.layers import LSTM
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint, EarlyStopping, CSVLogger
 from keras import Model
+import tempfile
 
 from io import BytesIO
 import pytz
@@ -33,13 +34,19 @@ django.setup()
 batch_size = 64
 
 
-class ModelData(NamedTuple):
+class TrainingData(NamedTuple):
     x_train: np.ndarray
     y_train: np.ndarray
     x_val: np.ndarray
     y_val: np.ndarray
     x_test: np.ndarray
     y_test: np.ndarray
+
+
+def get_latest_stocks(n=1):
+    from stocks.stocks.models import Stock
+
+    return read_frame(Stock.objects.all().order_by('-id')[:n])
 
 
 def get_stocks() -> pd.DataFrame:
@@ -85,7 +92,8 @@ def process_data(data: pd.DataFrame) -> pd.DataFrame:
     return pd.concat(data_currencies, sort=False).groupby(pd.Grouper(freq='30s')).mean().dropna()
 
 
-def prepare_data(data: pd.DataFrame, input_columns: List[str]) -> ModelData:
+# TODO this is not the best
+def prepare_training_data(data: pd.DataFrame, input_columns: List[str]) -> TrainingData:
     """
     Prepares data for learning.
     """
@@ -121,7 +129,7 @@ def prepare_data(data: pd.DataFrame, input_columns: List[str]) -> ModelData:
     y_val = np_utils.to_categorical(y_val, 3)
     y_test = np_utils.to_categorical(y_test, 3)
 
-    return ModelData(
+    return TrainingData(
         x_train=x_train,
         y_train=y_train,
         x_val=x_val,
@@ -129,6 +137,10 @@ def prepare_data(data: pd.DataFrame, input_columns: List[str]) -> ModelData:
         x_test=x_test,
         y_test=y_test
     )
+
+
+def prepare_prediction_data(data: pd.DataFrame, input_columns: List[str]) -> np.ndarray:
+    return StandardScaler().fit_transform(data.loc[:, input_columns].values)
 
 
 def create_model(lstm_shape) -> Model:
@@ -154,27 +166,31 @@ def create_model(lstm_shape) -> Model:
 
 def train_model(
         model: Model,
-        data: ModelData) -> Model:
+        data: TrainingData) -> Model:
     """
     Trains the model with the given dataset, and returns the final model.
     """
 
-    checkpointer = ModelCheckpoint(
-        filepath='model.hdf5', save_best_only=True)
+    tmp_fd, tmp_path = tempfile.mkstemp()
+    try:
+        checkpointer = ModelCheckpoint(
+            filepath=tmp_path, save_best_only=True)
 
-    early_stopping = EarlyStopping(patience=8, verbose=1)
+        early_stopping = EarlyStopping(patience=8, verbose=1)
 
-    logger = CSVLogger('training_log.csv', separator=',', append=True)
+        model.fit(data.x_train,
+                  data.y_train,
+                  batch_size=batch_size,
+                  epochs=10,
+                  verbose=1,
+                  validation_data=(data.x_val, data.y_val),
+                  callbacks=[checkpointer, early_stopping])
 
-    model.fit(data.x_train,
-              data.y_train,
-              batch_size=batch_size,
-              epochs=10,
-              verbose=1,
-              validation_data=(data.x_val, data.y_val),
-              callbacks=[checkpointer, early_stopping, logger])
+        model.evaluate(data.x_test, data.y_test)
 
-    return load_model('model.hdf5')
+        return load_model(tmp_path)
+    finally:
+        os.remove(tmp_path)
 
 
 def get_model(
@@ -203,3 +219,11 @@ def save_model(name: str, model: Model):
             'model_blob': blob.read()
         }
     )
+
+def save_prediction(name: str, value: int):
+    from stocks.stocks.models import Prediction
+
+    Prediction(
+        name = name,
+        value = value
+    ).save()
