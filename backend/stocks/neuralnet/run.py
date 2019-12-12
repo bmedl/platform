@@ -7,7 +7,7 @@ from .model import get_stocks, prepare_data, process_data, get_model, save_model
 
 def train():
     stocks = get_stocks()
-    stocks = prepare_data(stocks)
+    stocks = process_data(stocks)
 
     for name in ['ask', 'bid']:
         print(f'training model for {name}')
