@@ -28,6 +28,7 @@ services:
     build:
       context: .
       dockerfile: deploy/Dockerfile.neuralnet
+    runtime: nvidia
     restart: unless-stopped
     environment: 
       - TASKS=train
