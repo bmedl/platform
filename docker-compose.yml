@@ -24,6 +24,16 @@ services:
     networks:
       - docker_default
   
+  train:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.neuralnet
+    restart: unless-stopped
+    environment: 
+      - TASKS=train
+    networks:
+      - docker_default
+
   frontend:
     build:
       context: .

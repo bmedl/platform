@@ -19,7 +19,7 @@ keras = "*"
 pandas = "*"
 numpy = "*"
 django-pandas = "*"
-tensorflow = {file = "https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.9.0-py3-none-any.whl"}
+schedule = "*"
 
 [requires]
 python_version = "3.7"
