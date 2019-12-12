@@ -1,8 +1,8 @@
 FROM tensorflow/tensorflow:1.15.0-gpu-py3
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get install mysql-server
-RUN apt-get install libmysqlclient-dev
+RUN apt-get install mysql-server -y 
+RUN apt-get install libmysqlclient-dev -y
 
 RUN pip install cython
 RUN pip install numpy
