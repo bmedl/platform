@@ -8,6 +8,7 @@ WORKDIR /app
 COPY backend/requirements.txt /app/
 RUN pip install -r requirements.txt
 
+RUN python -m pip install --upgrade pip
 RUN pip install tensorflow-gpu
 
 COPY backend/ /app/
