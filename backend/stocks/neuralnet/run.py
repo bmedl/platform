@@ -30,7 +30,7 @@ def train():
             (model_data.x_train.shape[-2], model_data.x_train.shape[-1])
         )
 
-        train_model(model)
+        train_model(model, model_data)
         save_model(name, model)
 
 def predict():
