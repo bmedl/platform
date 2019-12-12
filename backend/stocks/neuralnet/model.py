@@ -182,7 +182,7 @@ def get_model(
     lstm_shape: Optional[Tuple[int, int]]
 ) -> Model:
     from stocks.stocks.models import NetworkModel
-    model = NetworkModel(name=name).objects.first()
+    model = NetworkModel.objects.filter(name=name).first()
 
     if model is None:
         return create_model(lstm_shape)
