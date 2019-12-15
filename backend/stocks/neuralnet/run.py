@@ -5,6 +5,7 @@ from os import getenv
 import os
 import pandas as pd
 import tempfile
+import numpy as np
 
 from .model import get_stocks, prepare_training_data, process_data, get_model, \
     save_model, train_model, get_latest_stocks, prepare_prediction_data, save_prediction, filter_data, \
@@ -27,18 +28,8 @@ def get_input_columns(name: str):
 
 def train():
     print('Retrieving stocks data...')
-    tmp_fd, tmp_path = tempfile.mkstemp(suffix='.csv')
     recv_start = datetime.now()
-    
-    try:
-        stocks = get_stocks()
-
-        # This solves a lot of issues for whatever reason
-        stocks.to_csv(tmp_path)
-        stocks = pd.read_csv(tmp_path)
-    finally:
-        os.remove(tmp_path)
-
+    stocks = get_stocks()
     print(f'Retrieved {len(stocks)} entries in {datetime.now() - recv_start}.')
 
     print('Processing stocks data...')
@@ -55,9 +46,11 @@ def train():
             f'Working with {len(filtered_data)} entries and {len(filtered_data.columns)} columns.')
 
         train_data = prepare_training_data(filtered_data)
-
+    
+        print('Loading model from database...')
         model = get_model(name)
         if model is None:
+            print('Model not found, creating a new one.')
             model = create_model(
                 (train_data.x_train.shape[-2], train_data.x_train.shape[-1]))
 
@@ -68,18 +61,27 @@ def train():
         print(f'New model for "{name}"" has been saved.')
 
 
-def predict(name: str, n=1):
-    # TODO
-    pass
-    # stocks = process_data(get_latest_stocks(1))
+def predict(name: str, n=200):
+    stocks = get_latest_stocks(n)
+    stocks = process_data(stocks)
 
-    # prediction_data = prepare_prediction_data(stocks, input_columns)
-    # model = get_model(
-    #     name, (prediction_data.shape[-2], prediction_data.shape[-1]))
+    input_columns = get_input_columns(name)
 
-    # prediction = model.predict(prediction_data)[0]
+    stocks = pd.DataFrame([stocks.loc[:, input_columns].mean()])
 
-    # save_prediction(name, prediction.item())
+    if np.isnan(np.sum(stocks.values)):
+        raise Exception('NaN in data, try a higher entry count.')
+
+    prediction_data = prepare_prediction_data(stocks)
+
+    model = get_model(name)
+
+    if model is None:
+        raise Exception('No model available')
+
+    prediction = model.predict_classes(prediction_data)
+
+    save_prediction(name, prediction[0].item())
 
 
 def main():

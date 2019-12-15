@@ -46,7 +46,16 @@ class TrainingData(NamedTuple):
 def get_latest_stocks(n=1):
     from stocks.stocks.models import Stock
 
-    return read_frame(Stock.objects.all().order_by('-id')[:n])
+    tmp_fd, tmp_path = tempfile.mkstemp(suffix='.csv')
+
+    try:
+        stocks = read_frame(Stock.objects.all().order_by('-id')[:n])
+
+        # This solves a lot of issues for whatever reason
+        stocks.to_csv(tmp_path)
+        return pd.read_csv(tmp_path)
+    finally:
+        os.remove(tmp_path)
 
 
 def get_stocks() -> pd.DataFrame:
@@ -54,9 +63,18 @@ def get_stocks() -> pd.DataFrame:
     Gets all the data from the database,
     and read it into a dataframe.
     """
-
     from stocks.stocks.models import Stock
-    return read_frame(Stock.objects.all())
+
+    tmp_fd, tmp_path = tempfile.mkstemp(suffix='.csv')
+
+    try:
+        stocks = read_frame(Stock.objects.all())
+
+        # This solves a lot of issues for whatever reason
+        stocks.to_csv(tmp_path)
+        return pd.read_csv(tmp_path)
+    finally:
+        os.remove(tmp_path)
 
 
 def calculate_meta(data: pd.DataFrame) -> pd.DataFrame:
@@ -71,8 +89,8 @@ def calculate_meta(data: pd.DataFrame) -> pd.DataFrame:
         ema26 = col_data.ewm(span=26, adjust=True).mean().dropna()
         macd = ema12 - ema26
 
-        sma = col_data.rolling(window=20).mean()
-        rstd = col_data.rolling(window=20).std()
+        sma = col_data.rolling(window=20).mean().dropna()
+        rstd = col_data.rolling(window=20).std().dropna()
 
         bu = sma + 2 * rstd
         bd = sma - 2 * rstd
@@ -108,9 +126,8 @@ def process_data(data: pd.DataFrame) -> pd.DataFrame:
 def filter_data(data, columns: List[str]) -> pd.DataFrame:
     return data.loc[:, columns].copy().groupby(pd.Grouper(freq='30s')).mean().dropna()
 
+
 # TODO this is not the best
-
-
 def prepare_training_data(data: pd.DataFrame) -> TrainingData:
     """
     Prepares data for learning.
@@ -157,8 +174,10 @@ def prepare_training_data(data: pd.DataFrame) -> TrainingData:
     )
 
 
-def prepare_prediction_data(data: pd.DataFrame, input_columns: List[str]) -> np.ndarray:
-    return StandardScaler().fit_transform(data.loc[:, input_columns].values)
+def prepare_prediction_data(data: pd.DataFrame) -> np.ndarray:
+    values = pd.concat([data]*120).values
+    
+    return StandardScaler().fit_transform(values).reshape((1, 120, 9))
 
 
 def create_model(lstm_shape) -> Model:
@@ -202,7 +221,7 @@ def train_model(
         model.fit(data.x_train,
                   data.y_train,
                   batch_size=batch_size,
-                  epochs=1,
+                  epochs=10,
                   verbose=1,
                   validation_data=(data.x_val, data.y_val),
                   callbacks=[checkpointer, early_stopping])
