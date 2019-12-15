@@ -13,6 +13,12 @@ from .model import get_stocks, prepare_model_data, process_data, get_model, \
 
 
 def get_input_columns(name: str):
+    """
+    Input columns that are used in a model.
+
+    Name can be either "ask" or "bid".
+    """
+
     return [
         f"EUR_USD_{name}",
         f"USD_CHF_{name}",
@@ -27,6 +33,12 @@ def get_input_columns(name: str):
 
 
 def train():
+    """
+    Trains existing models with all the available data, then saves them.
+
+    If there is no model available, a new one is created.
+    """
+
     print('Retrieving stocks data...')
     recv_start = datetime.now()
     stocks = get_stocks()
@@ -63,6 +75,14 @@ def train():
 
 
 def predict(name: str, time_range: timedelta = None):
+    """
+    Predicts whether the stocks will go up or down based on the latest
+        stock data.
+
+    Data from the given time range will be used (24 hours by default),
+    or a larger one if there is not enough data.
+    """
+
     latest_stock = get_latest_stocks(1)
     latest_stock.price_date = pd.to_datetime(latest_stock.price_date)
 
@@ -71,10 +91,13 @@ def predict(name: str, time_range: timedelta = None):
 
     latest_date = latest_stock.iloc[0]['price_date']
 
-    stocks = get_stocks_by_date_range(min=latest_date - time_range, max=latest_date)
+    stocks = get_stocks_by_date_range(
+        min=latest_date - time_range, max=latest_date)
     if len(stocks) < 8000:
         stocks = get_stocks_before_index(latest_stock.id, 8000)
-        time_range = latest_date - get_stocks_by_index(latest_stock.iloc[0]['id'] - 8000 + 1).iloc[0]['price_date']
+        time_range = latest_date - \
+            get_stocks_by_index(
+                latest_stock.iloc[0]['id'] - 8000 + 1).iloc[0]['price_date']
         if time_range is None:
             raise Exception('Should never happen')
 
@@ -92,11 +115,16 @@ def predict(name: str, time_range: timedelta = None):
         raise Exception('No model available')
 
     prediction = model.predict_classes(x)
- 
+
     save_prediction(name, prediction[0].item(), time_range, latest_date)
 
 
 def main():
+    """
+    Schedules tasks that are run after intervals.
+
+    Currently only "train" is supported, with a default 2 hour interval.
+    """
     tasks_str = getenv('TASKS')
     if tasks_str is None:
         raise Exception('TASKS env is required.')
@@ -107,7 +135,7 @@ def main():
         if task == 'train':
             train_interval = getenv('TRAIN_INTERVAL_SECONDS')
             if train_interval is None:
-                train_interval = 60 * 2
+                train_interval = 60 * 60 * 2
             else:
                 train_interval = float(train_interval)
             schedule.every(train_interval).seconds.do(train)

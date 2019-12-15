@@ -33,12 +33,14 @@ django.setup()
 
 
 def get_batch_size():
+    """
+    Gets the batch size that should be used.
+    """
     return 64
 
 def get_stocks() -> pd.DataFrame:
     """
-    Gets all the data from the database,
-    and read it into a dataframe.
+    Gets all the stock data from the database.
     """
     from stocks.stocks.models import Stock
 
@@ -46,6 +48,9 @@ def get_stocks() -> pd.DataFrame:
 
 
 def get_latest_stocks(n=1) -> pd.DataFrame:
+    """
+    Gets the latest n the stock data entries from the database.
+    """
     from stocks.stocks.models import Stock
 
     return read_frame(Stock.objects.all().order_by('-id')[:n])
@@ -55,6 +60,9 @@ def get_stocks_by_date_range(
     min: Optional[datetime] = None,
     max: Optional[datetime] = None
 ) -> pd.DataFrame:
+    """
+    Gets stock data from the database based on date range.
+    """
     from stocks.stocks.models import Stock
 
     if min is None:
@@ -69,6 +77,9 @@ def get_stocks_before_index(
     from_idx: int,
     n: int = 1
 ) -> pd.DataFrame:
+    """
+    Gets n stock data entries from the database before a given index.
+    """
     from stocks.stocks.models import Stock
 
     return read_frame(Stock.objects.filter(id__range=(from_idx-n+1, from_idx)))
@@ -76,12 +87,26 @@ def get_stocks_before_index(
 def get_stocks_by_index(
     i: int,
 ) -> pd.DataFrame: 
+    """
+    Gets a stock data entry by a given index.
+    """
     from stocks.stocks.models import Stock
 
     return read_frame(Stock.objects.filter(id=i))
 
 
 def calculate_meta(data: pd.DataFrame, col: str) -> pd.DataFrame:
+    """
+    Calculates various values for a given column in a dataframe,
+    then returns them. 
+
+    These values include:
+        - EMA (12)
+        - EMA (26)
+        - MACD
+        - Upper bounds
+        - Lower bounds
+    """
     col_data = data[[col]].copy()
 
     ema12 = col_data.ewm(span=12, adjust=True).mean()
@@ -123,6 +148,10 @@ def process_data(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def aggregate_data(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Aggregates all the currencies into a single dataframe,
+    then groups them by a time interval.
+    """
     data = data.copy()
     data.event_date = pd.to_datetime(data.event_date)
     data = data.set_index('event_date')
@@ -145,6 +174,10 @@ def aggregate_data(data: pd.DataFrame) -> pd.DataFrame:
 def prepare_model_data(data: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
     """
     Prepares data for learning.
+
+    A dataframe is turned into a numpy array,
+    then y is calculated in batches depending on whether
+    the values of x ascended or descended in a time interval.
     """
 
     scaler = StandardScaler()
@@ -170,6 +203,8 @@ def prepare_model_data(data: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
 def create_model(lstm_shape) -> Model:
     """
     Initializes a new Keras model.
+
+    This model is already optimized.
     """
 
     model = Sequential()
@@ -214,6 +249,9 @@ def train_model(
 
 
 def get_model(name: str) -> Model:
+    """
+    Returns a model from the database.
+    """
     from stocks.stocks.models import NetworkModel
     model = NetworkModel.objects.filter(name=name).first()
 
@@ -224,6 +262,9 @@ def get_model(name: str) -> Model:
 
 
 def save_model(name: str, model: Model):
+    """
+    Saves a model in the database.
+    """
     from stocks.stocks.models import NetworkModel
 
     blob = BytesIO()
@@ -239,6 +280,9 @@ def save_model(name: str, model: Model):
 
 
 def save_prediction(name: str, value: int, time_range: timedelta, price_date: datetime):
+    """
+    Saves a prediction in the database.
+    """
     from stocks.stocks.models import Prediction
 
     Prediction(
