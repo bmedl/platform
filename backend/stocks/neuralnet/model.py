@@ -59,6 +59,33 @@ def get_stocks() -> pd.DataFrame:
     return read_frame(Stock.objects.all())
 
 
+def calculate_meta(data: pd.DataFrame) -> pd.DataFrame:
+    final_columns: List[pd.DataFrame] = []
+
+    for col in data.columns:
+        col_data = data[[col]].copy()
+
+        final_columns.append(col_data)
+
+        ema12 = col_data.ewm(span=12, adjust=True).mean().dropna()
+        ema26 = col_data.ewm(span=26, adjust=True).mean().dropna()
+        macd = ema12 - ema26
+
+        sma = col_data.rolling(window=20).mean()
+        rstd = col_data.rolling(window=20).std()
+
+        bu = sma + 2 * rstd
+        bd = sma - 2 * rstd
+
+        final_columns.append(ema12.add_suffix('_EMA12'))
+        final_columns.append(ema26.add_suffix('_EMA26'))
+        final_columns.append(macd.add_suffix('_MACD'))
+        final_columns.append(bu.add_suffix('_BU'))
+        final_columns.append(bd.add_suffix('_BD'))
+
+    return pd.concat(final_columns, sort=False, axis=1)
+
+
 def process_data(data: pd.DataFrame) -> pd.DataFrame:
     """
     Processes all the data and calculates additional necessary values.
@@ -71,39 +98,20 @@ def process_data(data: pd.DataFrame) -> pd.DataFrame:
     data_currencies: List[pd.DataFrame] = []
     for currency in currencies:
         data_currency = data.loc[data['name'] == currency, [
-            'bid', 'ask']].add_prefix(f'{currency}_')
+            'ask', 'bid']].copy().add_prefix(f'{currency}_')
 
-        data_currency[f'{currency}_ask_EMA12'] = data_currency[f'{currency}_ask'].ewm(
-            span=12, adjust=True).mean()
-        data_currency[f'{currency}_ask_EMA26'] = data_currency[f'{currency}_ask'].ewm(
-            span=26, adjust=True).mean()
-        data_currency[f'{currency}_ask_MACD'] = data_currency[f'{currency}_ask_EMA12'] - \
-            data_currency[f'{currency}_ask_EMA26']
+        data_currencies.append(calculate_meta(data_currency))
 
-        data_currency[f'{currency}_ask_BU'] = data_currency[f'{currency}_ask'].rolling(
-            window=20).mean() + data_currency[f'{currency}_ask'].rolling(window=10).std() * 2
-        data_currency[f'{currency}_ask_BD'] = data_currency[f'{currency}_ask'].rolling(
-            window=20).mean() - data_currency[f'{currency}_ask'].rolling(window=10).std() * 2
+    return pd.concat(data_currencies, sort=False, axis=1)
 
-        data_currency[f'{currency}_bid_EMA12'] = data_currency[f'{currency}_bid'].ewm(
-            span=12, adjust=True).mean()
-        data_currency[f'{currency}_bid_EMA26'] = data_currency[f'{currency}_bid'].ewm(
-            span=26, adjust=True).mean()
-        data_currency[f'{currency}_bid_MACD'] = data_currency[f'{currency}_bid_EMA12'] - \
-            data_currency[f'{currency}_bid_EMA26']
 
-        data_currency[f'{currency}_bid_BU'] = data_currency[f'{currency}_bid'].rolling(
-            window=20).mean() + data_currency[f'{currency}_bid'].rolling(window=10).std() * 2
-        data_currency[f'{currency}_bid_BD'] = data_currency[f'{currency}_bid'].rolling(
-            window=20).mean() - data_currency[f'{currency}_bid'].rolling(window=10).std() * 2
-
-        data_currencies.append(data_currency)
-
-    return pd.concat(data_currencies, sort=False).groupby(pd.Grouper(freq='30s')).mean().dropna()
-
+def filter_data(data, columns: List[str]) -> pd.DataFrame:
+    return data.loc[:, columns].copy().groupby(pd.Grouper(freq='30s')).mean().dropna()
 
 # TODO this is not the best
-def prepare_training_data(data: pd.DataFrame, input_columns: List[str]) -> TrainingData:
+
+
+def prepare_training_data(data: pd.DataFrame) -> TrainingData:
     """
     Prepares data for learning.
     """
@@ -117,11 +125,11 @@ def prepare_training_data(data: pd.DataFrame, input_columns: List[str]) -> Train
     train, test = train_test_split(
         data, train_size=0.8, test_size=0.2, shuffle=False)
 
-    x = train.loc[:, input_columns].values
+    x = train.values
 
     x_train = scaler.fit_transform(x)
     x_test = scaler.transform(
-        test.loc[:, input_columns].values)
+        test.values)
 
     x_train, y_train = get_timeseries(
         x_train, 120, output_col_num, 0.05, 10)
@@ -181,36 +189,36 @@ def train_model(
     Trains the model with the given dataset, and returns the final model.
     """
 
-    checkpointer = ModelCheckpoint(
-        filepath='model.hdf5', save_best_only=True)
+    tmp_fd, tmp_path = tempfile.mkstemp(suffix='.hdf5')
+    try:
+        checkpointer = ModelCheckpoint(
+            filepath=tmp_path, save_best_only=True)
 
-    early_stopping = EarlyStopping(patience=8, verbose=1)
+        early_stopping = EarlyStopping(patience=8, verbose=1)
 
-    model.fit(data.x_train,
-                data.y_train,
-                batch_size=batch_size,
-                epochs=10,
-                verbose=1,
-                validation_data=(data.x_val, data.y_val),
-                callbacks=[checkpointer, early_stopping])
+        model.fit(data.x_train,
+                  data.y_train,
+                  batch_size=batch_size,
+                  epochs=1,
+                  verbose=1,
+                  validation_data=(data.x_val, data.y_val),
+                  callbacks=[checkpointer, early_stopping])
 
-    model.evaluate(data.x_test, data.y_test)
+        model.evaluate(data.x_test, data.y_test)
 
-    return load_model('model.hdf5')
+        return load_model(tmp_path)
+    finally:
+        os.remove(tmp_path)
 
 
-
-def get_model(
-    name: str,
-    lstm_shape: Optional[Tuple[int, int]]
-) -> Model:
+def get_model(name: str) -> Model:
     from stocks.stocks.models import NetworkModel
     model = NetworkModel.objects.filter(name=name).first()
 
     if model is None:
-        return create_model(lstm_shape)
-    else:
-        return load_model(BytesIO(model.model_blob))
+        return None
+
+    return load_model(BytesIO(model.model_blob))
 
 
 def save_model(name: str, model: Model):
