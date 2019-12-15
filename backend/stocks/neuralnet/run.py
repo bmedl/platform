@@ -1,15 +1,15 @@
 import schedule
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from os import getenv
 import os
 import pandas as pd
 import tempfile
 import numpy as np
 
-from .model import get_stocks, prepare_training_data, process_data, get_model, \
-    save_model, train_model, get_latest_stocks, prepare_prediction_data, save_prediction, filter_data, \
-    create_model
+from .model import get_stocks, prepare_model_data, process_data, get_model, \
+    save_model, train_model, get_stocks_by_date_range, save_prediction, \
+    create_model, get_latest_stocks, get_stocks_before_index, get_stocks_by_index
 
 
 def get_input_columns(name: str):
@@ -36,52 +36,64 @@ def train():
     stocks = process_data(stocks)
 
     for name in ['ask', 'bid']:
-        print(f'Training model for "{name}"')
+        print(f'Training model for "{name}".')
         start = datetime.now()
 
         input_columns = get_input_columns(name)
 
-        filtered_data = filter_data(stocks, input_columns)
+        filtered_data = stocks.loc[:, input_columns]
+
         print(
             f'Working with {len(filtered_data)} entries and {len(filtered_data.columns)} columns.')
 
-        train_data = prepare_training_data(filtered_data)
-    
+        x, y = prepare_model_data(filtered_data)
+
         print('Loading model from database...')
         model = get_model(name)
         if model is None:
             print('Model not found, creating a new one.')
             model = create_model(
-                (train_data.x_train.shape[-2], train_data.x_train.shape[-1]))
+                (x.shape[-2], x.shape[-1]))
 
-        train_model(model, train_data)
+        train_model(model, x, y)
 
         print(f'Training time: {datetime.now()-start}')
         save_model(name, model)
         print(f'New model for "{name}"" has been saved.')
 
 
-def predict(name: str, n=200):
-    stocks = get_latest_stocks(n)
+def predict(name: str, time_range: timedelta = None):
+    latest_stock = get_latest_stocks(1)
+    latest_stock.price_date = pd.to_datetime(latest_stock.price_date)
+
+    if time_range is None:
+        time_range = timedelta(hours=24)
+
+    latest_date = latest_stock.iloc[0]['price_date']
+
+    stocks = get_stocks_by_date_range(min=latest_date - time_range, max=latest_date)
+    if len(stocks) < 8000:
+        stocks = get_stocks_before_index(latest_stock.id, 8000)
+        time_range = latest_date - get_stocks_by_index(latest_stock.iloc[0]['id'] - 8000 + 1).iloc[0]['price_date']
+        if time_range is None:
+            raise Exception('Should never happen')
+
     stocks = process_data(stocks)
 
     input_columns = get_input_columns(name)
 
-    stocks = pd.DataFrame([stocks.loc[:, input_columns].mean()])
+    filtered_data = stocks.loc[:, input_columns]
 
-    if np.isnan(np.sum(stocks.values)):
-        raise Exception('NaN in data, try a higher entry count.')
-
-    prediction_data = prepare_prediction_data(stocks)
+    x, _ = prepare_model_data(filtered_data)
 
     model = get_model(name)
 
     if model is None:
         raise Exception('No model available')
 
-    prediction = model.predict_classes(prediction_data)
-
-    save_prediction(name, prediction[0].item())
+    prediction = model.predict_classes(x)
+ 
+    save_prediction(name, prediction[0].item(), time_range, latest_date)
 
 
 def main():

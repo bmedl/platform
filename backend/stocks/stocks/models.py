@@ -26,5 +26,7 @@ class NetworkModel(models.Model):
 
 class Prediction(models.Model):
     created = models.DateTimeField(auto_now=True)
+    time_range = models.DurationField()
+    price_date = models.DateTimeField()
     name = models.CharField(max_length=120)
     value = models.IntegerField()
