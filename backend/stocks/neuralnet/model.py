@@ -5,7 +5,7 @@ from keras.utils import np_utils
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential, load_model
-from keras.layers import Dense, Dropout
+from keras.layers import Dense, Dropout, Activation
 from keras.layers import LSTM
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint, EarlyStopping, CSVLogger
@@ -161,10 +161,13 @@ def create_model(lstm_shape) -> Model:
     model = Sequential()
     model.add(LSTM(64, input_shape=lstm_shape, return_sequences=True))
     model.add(Dropout(0.0744))
+    model.add(Activation('relu'))
     model.add(LSTM(128, return_sequences=True))
     model.add(Dropout(0.0716))
+    model.add(Activation('relu'))
     model.add(LSTM(64))
     model.add(Dropout(0.1262))
+    model.add(Activation('relu'))
     model.add(Dense(3, activation='softmax'))
 
     optimizer = Adam(lr=0.0001)
