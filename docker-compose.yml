@@ -1,6 +1,7 @@
 version: "2.3"
 services:
   backend:
+    runtime: nvidia
     build:
       context: .
       dockerfile: deploy/Dockerfile.backend
