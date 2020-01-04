@@ -159,6 +159,7 @@ model.fit(XTrain,
 #backtest
 actual = startDate.strftime("%Y-%m-%d")
 for index, row in df[(df.index >= startDate)].iterrows():
+    model.load_weights('ask_weights.hdf5')
     actualDF = get_timeseries(scaler.transform(df[df.index <= index].loc[:, ask_input_cols].tail(121)),
                                                 120, 
                                                 ask_output_col_num, 
