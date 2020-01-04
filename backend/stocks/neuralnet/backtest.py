@@ -143,7 +143,7 @@ model.compile(loss='categorical_crossentropy',
               optimizer=Adam(lr=0.0001), metrics=['accuracy'])
 
 #callbacks definition
-ask_checkpointer = ModelCheckpoint(filepath='ask_weights.hdf5', save_best_only = True)
+ask_checkpointer = ModelCheckpoint(monitor='acc', filepath='ask_weights.hdf5', save_best_only = True)
 early_stopping=EarlyStopping(patience=8, verbose=1)
 ask_logger = CSVLogger('ask_training_log.csv',separator=',', append= True)
 
