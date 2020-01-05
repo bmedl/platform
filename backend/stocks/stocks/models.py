@@ -38,3 +38,12 @@ class Prediction(models.Model):
     price_date = models.DateTimeField()
     name = models.CharField(max_length=120)
     value = models.IntegerField()
+
+class BacktestResult(models.Model):
+    """
+    A predicted value.
+    """
+    created = models.DateTimeField(auto_now=True)
+    price_date = models.DateTimeField()
+    expected = models.IntegerField()
+    actual = models.IntegerField()

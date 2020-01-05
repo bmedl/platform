@@ -10,6 +10,9 @@ from keras.optimizers import RMSprop
 from keras.callbacks import ModelCheckpoint, EarlyStopping, CSVLogger
 from keras.optimizers import Adam
 
+import django
+django.setup()
+
 def data():
     dfAll = pd.read_csv("stocks_stock_202001022129.csv", sep=",")
     EUR_USD = dfAll[dfAll["name"]=="EUR_USD"]
@@ -102,7 +105,7 @@ def trim_dataset(df, batch_size):
         return df
 
 
-def ModelPrediction(array):
+def model_prediction(array):
     if array.argmax() == 0:
         return 0
     elif array.argmax() == 1:
@@ -155,6 +158,7 @@ model.fit(XTrain,
           verbose=1,
           callbacks = [ask_checkpointer, early_stopping, ask_logger])
 
+from stocks.stocks.models import BacktestResult
 
 #backtest
 actual = startDate.strftime("%Y-%m-%d")
@@ -165,7 +169,11 @@ for index, row in df[(df.index >= startDate)].iterrows():
                                                 ask_output_col_num, 
                                                 0.05, 
                                                 10)
-    print(index, ModelPrediction(model.predict(actualDF[0])), int(actualDF[1][0]))
+    BacktestResult(
+        price_date=index,
+        expected=int(actualDF[1][0]),
+        actual=model_prediction(actualDF[0])
+    ).save()
     if actual != index.strftime("%Y-%m-%d"):
         #retrain the network in every day
         actual=index.strftime("%Y-%m-%d")
