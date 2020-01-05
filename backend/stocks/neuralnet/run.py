@@ -159,7 +159,7 @@ def backtest():
             save_backtest_result(
                 name=name,
                 actual=model_prediction(model.predict(actual_data[0])),
-                expected=model_prediction(actual_data[1]),
+                expected=actual_data[1][0],
                 date=index
             )
 

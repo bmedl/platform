@@ -141,7 +141,6 @@ def process_data(data: pd.DataFrame) -> pd.DataFrame:
     currencies = data.name.unique().astype(str)
 
     data = aggregate_data(data)
-
     all_data: List[pd.DataFrame] = [data]
     for name in ['ask', 'bid']:
         for currency in currencies:
