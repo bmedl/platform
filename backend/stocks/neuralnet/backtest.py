@@ -10,11 +10,13 @@ from keras.optimizers import RMSprop
 from keras.callbacks import ModelCheckpoint, EarlyStopping, CSVLogger
 from keras.optimizers import Adam
 
+from .model import get_stocks
+
 import django
 django.setup()
 
 def data():
-    dfAll = pd.read_csv("stocks_stock_202001022129.csv", sep=",")
+    dfAll = get_stocks()
     EUR_USD = dfAll[dfAll["name"]=="EUR_USD"]
     EUR_USD.event_date = pd.to_datetime(dfAll.event_date)
     EUR_USD.index = pd.to_datetime(EUR_USD.event_date)
