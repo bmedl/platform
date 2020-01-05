@@ -44,6 +44,7 @@ class BacktestResult(models.Model):
     A predicted value.
     """
     created = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=120)
     price_date = models.DateTimeField()
     expected = models.IntegerField()
     actual = models.IntegerField()

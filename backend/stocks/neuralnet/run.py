@@ -6,10 +6,13 @@ import os
 import pandas as pd
 import tempfile
 import numpy as np
+import pytz
 
 from .model import get_stocks, prepare_model_data, process_data, get_model, \
     save_model, train_model, get_stocks_by_date_range, save_prediction, \
-    create_model, get_latest_stocks, get_stocks_before_index, get_stocks_by_index
+    create_model, get_latest_stocks, get_stocks_before_index, get_stocks_by_index, save_backtest_result, model_prediction
+
+from .util import get_timeseries
 
 
 def get_input_columns(name: str):
@@ -117,6 +120,55 @@ def predict(name: str, time_range: timedelta = None):
     prediction = model.predict_classes(x)
 
     save_prediction(name, prediction[0].item(), time_range, latest_date)
+
+
+def backtest():
+    start_date = pytz.utc.localize(
+        pd.to_datetime(getenv('BACKTEST_START_DATE')))
+
+    print('Retrieving stocks data...')
+    recv_start = datetime.now()
+    stocks = get_stocks()
+    print(f'Retrieved {len(stocks)} entries in {datetime.now() - recv_start}.')
+
+    print('Processing stocks data...')
+    stocks = process_data(stocks)
+
+    for name in ['ask', 'bid']:
+        input_columns = get_input_columns(name)
+
+        filtered_data = stocks.loc[:, input_columns]
+
+        x, y = prepare_model_data(
+            filtered_data.loc[filtered_data.index < start_date, :])
+
+        model = create_model((x.shape[-2], x.shape[-1]))
+        model = train_model(model, x, y)
+
+        actual_date = start_date.strftime("%Y-%m-%d")
+        for index, _ in filtered_data.loc[filtered_data.index >= start_date, :].iterrows():
+            actual_data = get_timeseries(
+                df=filtered_data.loc[filtered_data.index <=
+                                     index, :].tail(121).values,
+                time_steps=120,
+                output_col_num=3,
+                limit=0.05,
+                predict_interval=10
+            )
+
+            save_backtest_result(
+                name=name,
+                actual=model_prediction(model.predict(actual_data[0])),
+                expected=int(actual_data[1][0]),
+                date=index
+            )
+
+            if actual_date != index.strftime("%Y-%m-%d"):
+                actual = index.strftime("%Y-%m-%d")
+
+            x, y = prepare_model_data(
+                filtered_data.loc[filtered_data.index <= index, :])
+            model = train_model(model, x, y)
 
 
 def main():

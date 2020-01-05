@@ -38,6 +38,7 @@ def get_batch_size():
     """
     return 64
 
+
 def get_stocks() -> pd.DataFrame:
     """
     Gets all the stock data from the database.
@@ -73,6 +74,7 @@ def get_stocks_by_date_range(
 
     return read_frame(Stock.objects.filter(price_date__range=(min, max)))
 
+
 def get_stocks_before_index(
     from_idx: int,
     n: int = 1
@@ -84,9 +86,10 @@ def get_stocks_before_index(
 
     return read_frame(Stock.objects.filter(id__range=(from_idx-n+1, from_idx)))
 
+
 def get_stocks_by_index(
     i: int,
-) -> pd.DataFrame: 
+) -> pd.DataFrame:
     """
     Gets a stock data entry by a given index.
     """
@@ -200,6 +203,7 @@ def prepare_model_data(data: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
 
     return x, y
 
+
 def create_model(lstm_shape) -> Model:
     """
     Initializes a new Keras model.
@@ -235,17 +239,16 @@ def train_model(
     Trains the model with the given dataset, and returns the final model.
     """
 
-    early_stopping = EarlyStopping(patience=8, verbose=1, monitor='acc')
+    early_stopping = EarlyStopping(patience=8, verbose=1, monitor='accuracy')
 
     model.fit(x,
-                y,
-                batch_size=get_batch_size(),
-                epochs=40,
-                verbose=1,
-                callbacks=[early_stopping])
+              y,
+              batch_size=get_batch_size(),
+              epochs=40,
+              verbose=1,
+              callbacks=[early_stopping])
 
     return model
-
 
 
 def get_model(name: str) -> Model:
@@ -291,3 +294,22 @@ def save_prediction(name: str, value: int, time_range: timedelta, price_date: da
         price_date=price_date,
         value=value
     ).save()
+
+
+def save_backtest_result(name: str, date: datetime, actual: int, expected: int):
+    from stocks.stocks.models import BacktestResult
+    BacktestResult(
+        name=name,
+        price_date=date,
+        expected=expected,
+        actual=actual
+    ).save()
+
+
+def model_prediction(array: np.ndarray) -> int:
+    if array.argmax() == 0:
+        return 0
+    elif array.argmax() == 1:
+        return 1
+    else:
+        return -1
