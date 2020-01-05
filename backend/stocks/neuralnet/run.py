@@ -7,6 +7,7 @@ import pandas as pd
 import tempfile
 import numpy as np
 import pytz
+from sklearn.preprocessing import StandardScaler
 
 from .model import get_stocks, prepare_model_data, process_data, get_model, \
     save_model, train_model, get_stocks_by_date_range, save_prediction, \
@@ -139,6 +140,9 @@ def backtest():
 
         filtered_data = stocks.loc[:, input_columns]
 
+        scaler = StandardScaler()
+        scaler = scaler.fit(filtered_data)
+
         x, y = prepare_model_data(
             filtered_data.loc[filtered_data.index < start_date, :])
 
@@ -148,8 +152,8 @@ def backtest():
         actual_date = start_date.strftime("%Y-%m-%d")
         for index, _ in filtered_data.loc[filtered_data.index >= start_date, :].iterrows():
             actual_data = get_timeseries(
-                df=filtered_data.loc[filtered_data.index <=
-                                     index, :].tail(121).values,
+                df=scaler.transform(filtered_data.loc[filtered_data.index <=
+                                     index, :].tail(121)),
                 time_steps=120,
                 output_col_num=3,
                 limit=0.05,
