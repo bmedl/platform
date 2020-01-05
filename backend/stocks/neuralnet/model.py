@@ -235,12 +235,12 @@ def train_model(
     Trains the model with the given dataset, and returns the final model.
     """
 
-    early_stopping = EarlyStopping(patience=8, verbose=1)
+    early_stopping = EarlyStopping(patience=8, verbose=1, monitor='acc')
 
     model.fit(x,
                 y,
                 batch_size=get_batch_size(),
-                epochs=10,
+                epochs=40,
                 verbose=1,
                 callbacks=[early_stopping])
 
