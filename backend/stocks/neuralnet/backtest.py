@@ -149,7 +149,7 @@ model.compile(loss='categorical_crossentropy',
 
 #callbacks definition
 ask_checkpointer = ModelCheckpoint(monitor='acc', filepath='ask_weights.hdf5', save_best_only = True)
-early_stopping=EarlyStopping(monitor='acc', patience=8, verbose=1)
+early_stopping=EarlyStopping(monitor='acc', patience=3, verbose=1)
 ask_logger = CSVLogger('ask_training_log.csv',separator=',', append= True)
 
 #initial train
