@@ -166,9 +166,9 @@ def backtest():
             if actual_date != index.strftime("%Y-%m-%d"):
                 actual = index.strftime("%Y-%m-%d")
 
-            x, y = prepare_model_data(
-                filtered_data.loc[filtered_data.index <= index, :])
-            model = train_model(model, x, y)
+                x, y = prepare_model_data(
+                    filtered_data.loc[filtered_data.index <= index, :])
+                model = train_model(model, x, y)
 
 
 def main():
