@@ -238,7 +238,7 @@ def train_model(
     Trains the model with the given dataset, and returns the final model.
     """
 
-    early_stopping = EarlyStopping(patience=8, verbose=1, monitor='accuracy')
+    early_stopping = EarlyStopping(patience=3, verbose=1, monitor='accuracy')
 
     model.fit(x,
               y,
