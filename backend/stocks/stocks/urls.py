@@ -16,12 +16,12 @@ Including another URLconf
 
 from django.urls import include, path
 from rest_framework import routers
-from .viewsets import ListViewSet,Last100Stocks
+from .viewsets import ListViewSet, Last100Stocks, predict
 
 router = routers.DefaultRouter()
 router.register(r'EUR_USD', ListViewSet)
 router.register(r'TOP100', Last100Stocks)
-
+router.register(r'predict', predict)
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
