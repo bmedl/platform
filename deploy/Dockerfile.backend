@@ -11,4 +11,4 @@ COPY backend/requirements.txt /app/
 RUN pip install -r requirements.txt
 
 COPY backend/ /app/
-CMD ["python", "app/manage.py", "runserver", "0.0.0.0:80"]
+CMD ["python", "stocks/manage.py", "runserver", "0.0.0.0:80"]
