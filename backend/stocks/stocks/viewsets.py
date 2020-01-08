@@ -35,6 +35,6 @@ class Predict(ViewSet):
             data = request.data
             predict_fn(data['name'])
             return Response({'success': True})
-        except e:
+        except Exception as e:
             return Response({'success': False, 'error': e})
 
