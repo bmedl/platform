@@ -24,7 +24,7 @@ class Last100Stocks(ModelViewSet):
 
 class Predict(ViewSet):
     @action(detail=True, methods=['post'])
-    def predict(self, request):
+    def predict(self, request, pk=None):
         from ..neuralnet.run import predict as predict_fn
         try:
             data = request.data
