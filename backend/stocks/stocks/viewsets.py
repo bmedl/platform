@@ -1,4 +1,4 @@
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ViewSet
 from .serializers import StockSerializer
 from .models import Stock
 from rest_framework.request import Request
@@ -22,12 +22,14 @@ class Last100Stocks(ModelViewSet):
         return Response(serializer.data)
 
 
-@api_view(['POST'])
-def predict(request):
-    from ..neuralnet.run import predict as predict_fn
-    try:
-        data = request.data
-        predict_fn(data['name'])
-        return Response({'success': True})
-    except e:
-        return Response({'success': False, 'error': e})
+class Predict(ViewSet):
+    @action(detail=True, methods=['post'])
+    def predict(self, request):
+        from ..neuralnet.run import predict as predict_fn
+        try:
+            data = request.data
+            predict_fn(data['name'])
+            return Response({'success': True})
+        except e:
+            return Response({'success': False, 'error': e})
+
