@@ -21,7 +21,7 @@ from .viewsets import ListViewSet, Last100Stocks, Predict
 router = routers.DefaultRouter()
 router.register(r'EUR_USD', ListViewSet)
 router.register(r'TOP100', Last100Stocks)
-router.register(r'predict', Predict, basename='predict')
+router.register(r'predict', Predict)
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
