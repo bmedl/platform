@@ -36,5 +36,8 @@ class Predict(ViewSet):
             predict_fn(data['name'])
             return Response({'success': True})
         except Exception as e:
-            return Response({'success': False, 'error': e})
+            if hasattr(e, 'message'):
+                return Response({'success': False, 'error': e.message})
+            else:
+                return Response({'success': False, 'error': str(e)})
 
