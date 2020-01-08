@@ -31,7 +31,6 @@ from .util import get_timeseries, trim_dataset
 import django
 django.setup()
 
-
 def get_batch_size():
     """
     Gets the batch size that should be used.

@@ -118,9 +118,9 @@ def predict(name: str, time_range: timedelta = None):
     if model is None:
         raise Exception('No model available')
 
-    prediction = model.predict_classes(x)
+    prediction = model_prediction(model.predict(x))
 
-    save_prediction(name, prediction[0].item(), time_range, latest_date)
+    save_prediction(name, prediction, time_range, latest_date)
 
 
 def backtest():
