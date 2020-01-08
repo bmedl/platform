@@ -28,7 +28,9 @@ DEBUG = True
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-ALLOWED_HOSTS: List[str] = []
+ALLOWED_HOSTS: List[str] = [
+    'api.bmedl.soothingblue.space'
+]
 
 
 # Application definition

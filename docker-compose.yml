@@ -6,11 +6,11 @@ services:
       context: .
       dockerfile: deploy/Dockerfile.backend
     restart: unless-stopped
-    environment: 
+    environment:
       - DB_USER
       - DB_PASSWORD
       - DB_ADDRESS
-    networks: 
+    networks:
       - docker_default
 
   collect:
@@ -18,7 +18,7 @@ services:
       context: .
       dockerfile: deploy/Dockerfile.collect
     restart: unless-stopped
-    environment: 
+    environment:
       - DB_USER
       - DB_PASSWORD
       - DB_ADDRESS
@@ -28,14 +28,14 @@ services:
       - V20_INSTRUMENTS
     networks:
       - docker_default
-  
+
   train:
     build:
       context: .
       dockerfile: deploy/Dockerfile.neuralnet
     runtime: nvidia
     restart: unless-stopped
-    environment: 
+    environment:
       - DB_USER
       - DB_PASSWORD
       - DB_ADDRESS
