@@ -25,11 +25,7 @@ class Last100Stocks(ModelViewSet):
 class Predict(ViewSet):
     @action(detail=True, methods=['post'])
     def predict(self, request, pk=None):
-        import os
-        from os import sys
-        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-
-        from stocks.neuralnet.run import predict as predict_fn
+        from .comedy import predict as predict_fn
 
         try:
             data = request.data
