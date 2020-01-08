@@ -6,9 +6,9 @@ RUN apt-get update && apt-get install build-essential libssl-dev python3-dev def
 RUN pip install cython
 RUN pip install numpy
 
-WORKDIR /app
-COPY backend/requirements.txt /app/
+WORKDIR /stocks
+COPY backend/requirements.txt /stocks/
 RUN pip install -r requirements.txt
 
-COPY backend/ /app/
+COPY backend/ /stocks/
 CMD ["python", "stocks/manage.py", "runserver", "0.0.0.0:80"]
